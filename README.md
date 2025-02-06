@@ -11,11 +11,6 @@ This application provides a RESTful API endpoint that:
 4. Performs semantic similarity search based on user queries
 5. Uses GPT-4 to generate natural language responses based on the retrieved context
 
-## Prerequisites
-
-- Python 3.7+
-- OpenAI API key
-
 
 ## Environment Setup
 
