@@ -37,7 +37,7 @@ def load_data():
     return "\n".join(document)
 
 
-@app.route("/vectorstore", methods=["POST"])
+@app.route("/", methods=["POST"])
 def vectorstore():
     """
     Handles user queries, retrieves relevant documents from ChromaDB, 
