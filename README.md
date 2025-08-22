@@ -20,6 +20,46 @@ Create a `.env` file in the root directory with your OpenAI API key:
 OPENAI_API_KEY=your_api_key_here
 ```
 
+## Running Locally
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository_url>
+    cd excel-ai-search-main
+    ```
+
+2.  **Create and activate a virtual environment:**
+    On Windows:
+    ```bash
+    python -m venv venv
+    .\venv\Scripts\activate
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+    *Note: See the "Common Issues" section below if you encounter installation errors on Windows.*
+
+4.  **Set up environment variables:**
+    Create a `.env` file as described in the [Environment Setup](#environment-setup) section.
+
+5.  **Run the application:**
+    ```bash
+    flask run
+    ```
+    The API will be available at `http://127.0.0.1:5000`.
+
+## Common Issues
+
+### Microsoft Visual C++ Redistributable Requirement
+
+When installing dependencies via `pip` on a Windows machine, you may encounter an error message indicating that Microsoft Visual C++ 14.0 or greater is required. This is because some Python packages, like `hnswlib` (a dependency for ChromaDB), need to be compiled from source and require a C++ toolchain.
+
+**Solution:**
+Download and install the "Build Tools for Visual Studio" from the official [Microsoft Visual Studio website](https://visualstudio.microsoft.com/visual-cpp-build-tools/). During installation, make sure to select the "C++ build tools" workload. After the installation is complete, try running `pip install -r requirements.txt` again.
+
+
 ## API Endpoints
 
 ### POST /vectorstore
