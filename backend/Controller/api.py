@@ -2,7 +2,7 @@ import os
 import json
 import pandas
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from openai import OpenAI
 
@@ -15,11 +15,14 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 embedding = OpenAIEmbeddings(openai_api_key=api_key)
+persist_directory = "Dataset/Vector_Store_900"
 
-def load_data():
+def create_vector_store():
     """
-    Loads and processes data from an Excel file into a single text format.
+    Loads data from Excel, splits it, and creates a persistent vector store.
+    This function should be run once, or whenever the Excel file changes.
     """
+    print("Creating vector store...")
     document = []
     df = pandas.read_excel(os.path.join("assets", "sample.xlsx"))
 
@@ -27,29 +30,41 @@ def load_data():
         raw_text = ", ".join(str(value) for value in row.values)
         document.append(raw_text)
 
-    return "\n".join(document)
-
-def handle_query(query):
-    excel_data = load_data()
+    full_text = "\n".join(document)
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n", ".", "!", "?", ",", " "], 
         chunk_size=1000, 
         chunk_overlap=250
     )
-    character_text = text_splitter.create_documents([excel_data])
+    character_text = text_splitter.create_documents([full_text])
 
-    persist_directory = "Dataset/Vector_Store_900"
-
-    vector_store = Chroma.from_documents(
+    # Create and persist the vector store
+    Chroma.from_documents(
         documents=character_text, 
         embedding=embedding, 
         persist_directory=persist_directory
     )
+    print("Vector store created successfully.")
+    return {"status": "success", "message": f"Vector store created at {persist_directory}"}
+
+
+def handle_query(query):
+    """
+    Handles an incoming query by loading the persistent vector store
+    and using it to answer the question.
+    """
+    # Check if the vector store exists, if not, create it.
+    if not os.path.exists(persist_directory):
+        create_vector_store()
+
+    # Now, load the persisted vector store
+    vector_store = Chroma(persist_directory=persist_directory, embedding_function=embedding)
 
     retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 14})
 
-    qa = retriever.get_relevant_documents(query=query)
+    # Use the new 'invoke' method instead of the deprecated one
+    qa = retriever.invoke(query)
     output_results = [{"document": result.page_content} for result in qa]
 
     conversation = [
@@ -78,3 +93,7 @@ def handle_query(query):
     )
 
     return {"message": response.choices[0].message.content}
+
+# You can add a small block to run the creation script directly
+if __name__ == '__main__':
+    create_vector_store()
